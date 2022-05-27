@@ -22,6 +22,7 @@
 %% API
 -export([swagger_dlink/0]).
 -export([handle/4]).
+-export([do_request/4]).
 
 %% API描述
 %% 支持二种方式导入
@@ -46,6 +47,7 @@ swagger_dlink() ->
     {Status :: dgiot_req:http_status(), Headers :: map(), Body :: map(), Req :: dgiot_req:req()}.
 
 handle(OperationID, Args, Context, Req) ->
+   io:format("~s ~p OperationID: ~p  ~n", [?FILE, ?LINE, OperationID]),
     Headers = #{},
     case catch do_request(OperationID, Args, Context, Req) of
         {ErrType, Reason} when ErrType == 'EXIT'; ErrType == error ->
@@ -111,5 +113,57 @@ do_request(get_dlinkjson, #{<<"type">> := Type}, _Context, _Req) ->
     DlinkJson = dgiot_dlink:get_json(Type),
     {200, DlinkJson};
 
+
+
+do_request(delete_topic, #{<<"topic">> := Topic}=_Args, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
+    %%取消订阅
+    io:format("~s ~p Topic ~p SessionToken ~p   ~n", [?FILE, ?LINE, Topic, SessionToken]),
+    [_Head, _User, Key | _] = re:split(Topic, "/"),
+    TopicKey = <<"dg_user_", Key/binary>>,
+    io:format("~s ~p TopicKey ~p   ~n", [?FILE, ?LINE, TopicKey]),
+    dgiot_mqtt:unsubscribe(SessionToken, Topic), case dgiot_data:get({page_router_key, SessionToken, TopicKey}) of
+                                                     Topic ->
+                                                         dgiot_mqtt:unsubscribe(SessionToken, Topic),
+                                                         dgiot_data:delete({page_router_key, SessionToken, TopicKey});
+                                                     _ ->
+                                                         pass
+                                                 end,
+    {200, #{<<"message">> => <<"取消订阅成功"/utf8>>}};
+
+
+do_request(get_topic, #{<<"topic">> := Topic}=_Args, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
+    %%查询
+    io:format("~s ~p Topic ~p SessionToken ~p   ~n", [?FILE, ?LINE, Topic, SessionToken]),
+    [_Head, _User, Key | _] = re:split(Topic, "/"),
+    TopicKey = <<"dg_user_", Key/binary>>,
+    SubTopic = dgiot_data:get({page_router_key, SessionToken, TopicKey}),
+
+    {200, #{<<"message">> => SubTopic}};
+
+do_request(post_topic, #{<<"topic">> := Topic} = _Args, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
+    io:format("~s ~p Topic ~p SessionToken ~p   ~n", [?FILE, ?LINE, Topic, SessionToken]),
+    %%订阅topic
+    [_Head, _User, Key | _] = re:split(Topic, "/"),
+    TopicKey = <<"dg_user_", Key/binary>>,
+    io:format("~s ~p Topic ~p SessionToken ~p  TopicKey ~p ~n", [?FILE, ?LINE, Topic, SessionToken,TopicKey]),
+    case dgiot_data:get({page_router_key, SessionToken, TopicKey}) of
+        not_find ->
+            io:format("~s ~p TopicKey ~p  ~n", [?FILE, ?LINE, TopicKey]),
+            io:format("~s ~p not_find ~p",[?FILE,?LINE,TopicKey]),
+            dgiot_mqtt:subscribe(SessionToken, Topic),
+            dgiot_data:insert({page_router_key, SessionToken, TopicKey}, Topic);
+        OldTopic ->
+            io:format("~s ~p unsubscribe ~p  ~n", [?FILE, ?LINE, TopicKey]),
+            dgiot_mqtt:unsubscribe(SessionToken, OldTopic),
+            io:format("~s ~p OldTopic ~p",[?FILE,?LINE,OldTopic]),
+            dgiot_mqtt:subscribe(SessionToken, Topic),
+            dgiot_data:insert({page_router_key, SessionToken, TopicKey}, Topic)
+
+    end,
+    {200, #{<<"message">> => <<"订阅成功"/utf8>>, <<"Topic">> => Topic, <<"TopicKey">> => TopicKey}};
+
 do_request(_OperationId, _Args, _Context, _Req) ->
+    io:format("~s ~p operateid ~p  ~n", [?FILE, ?LINE, _OperationId]),
     {error, <<"Not Allowed.">>}.
+
+

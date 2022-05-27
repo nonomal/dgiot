@@ -26,14 +26,33 @@
     , description/0
 ]).
 
-check(#{username := Username}, AuthResult, _)
+%% 首页订阅
+subDashboard(_Json) ->
+    dgiot_parse:query_object(<<"dashboard">>),
+    dgiot_mqtt:subscribe(<<"$dg/dashboard/32511dbfe5/report">>).
+
+check(#{clientid := ClientId, username := Username}, AuthResult, _)
     when Username == <<"anonymous">> orelse Username == undefined orelse Username == <<>> ->
-%%    io:format("~s ~p Username: ~p~n", [?FILE, ?LINE, Username]),
+    io:format("~s ~p ClientId ~p Username: ~p~n", [?FILE, ?LINE, ClientId, Username]),
+
+    dgiot_mqtt:subscribe(ClientId, <<"test">>),
+    io:format("~s ~p ClientId ~p ~n", [?FILE, ?LINE, ClientId]),
+    dgiot_mqtt:subscribe(<<"test">>),
+    Dashboardjson = dgiot_dlink:get_json(<<"Dashboard">>),
+    subDashboard(Dashboardjson),
+
+
+    io:format("~s ~p ClientId ~p ~n", [?FILE, ?LINE, ClientId]),
     {ok, AuthResult#{anonymous => true, auth_result => success}};
 
 %% 当 clientid 和 password 为token 且相等的时候为用户登录
 check(#{clientid := Token, username := UserId, password := Token}, AuthResult, #{hash_type := _HashType}) ->
-%%    io:format("~s ~p UserId: ~p~n", [?FILE, ?LINE, UserId]),
+    io:format("~s ~p UserId: ~p Token ~p ~n ~n", [?FILE, ?LINE, UserId,Token]),
+
+%%    $dg/thing/{productId}/{deviceAddr}/properties/report 属性上报订阅
+%%    dgiot_parse:query_object(<<"Product">>, #{}, [{"X-Parse-Session-Token", SessionToken}], [{from, rest}]) .
+
+
     case dgiot_auth:get_session(Token) of
         #{<<"objectId">> := UserId} ->
             {stop, AuthResult#{anonymous => false, auth_result => success}};
@@ -96,3 +115,5 @@ do_check(AuthResult, Password, ProductID, DeviceAddr, DeviceId, Ip) ->
                     {stop, AuthResult#{anonymous => false, auth_result => password_error}}
             end
     end.
+
+
