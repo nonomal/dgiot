@@ -108,7 +108,7 @@
             "name": "topic",
             "required": true,
             "type": "string",
-            "default": "dg/user/router/"
+            "default": "$dg/user/router/"
           }
         ],
         "responses":{
@@ -139,7 +139,7 @@
             "name": "topic",
             "in": "query",
             "type": "string",
-            "default": "dg/user/router/",
+            "default": "$dg/user/router/",
             "description": "topic"
           }
         ],
@@ -179,7 +179,7 @@
                 "topic": {
                   "required": true,
                   "type": "string",
-                  "example": "dg/user/router/"
+                  "example": "$dg/user/router/"
                 }
               }
             }
