@@ -71,7 +71,14 @@ init_ets() ->
 subscribe_route_key(Topics, Type, SessionToken) ->
     unsubscribe_route_key(SessionToken, Type),
     lists:foldl(fun(X, Acc) ->
-        dgiot_mqtt:subscribe_mgmt(SessionToken, X),
+        case dgiot_data:get({dlink_client, SessionToken}) of
+            not_find ->
+                dgiot_mqtt:subscribe_mgmt(SessionToken, X);
+            Clients ->
+                lists:foldl(fun(Client, _) ->
+                    dgiot_mqtt:subscribe_mgmt(Client, X)
+                            end, {}, Clients)
+        end,
         Acc ++ [X]
                 end, [], Topics),
     dgiot_data:insert(?DGIOT_ROUTE_KEY, {SessionToken, Type}, Topics).
@@ -149,7 +156,7 @@ send(ProductId, DevAddr, Topic, Payload) ->
 -spec(publish(Client :: binary(), Topic :: binary(), Payload :: binary())
         -> ok | {error, Reason :: any()}).
 publish(Client, Topic, Payload) ->
-    timer:sleep(10),
+    timer:sleep(1),
     Msg = emqx_message:make(dgiot_utils:to_binary(Client), 0, Topic, Payload),
     emqx:publish(Msg),
     ok.

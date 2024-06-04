@@ -157,6 +157,22 @@
             zh => <<"是否刷新物模型"/utf8>>
         }
     },
+    <<"is_shard">> => #{
+        order => 9,
+        type => enum,
+        required => true,
+        default => #{<<"value">> => false, <<"label">> => <<"否"/utf8>>},
+        enum => [
+            #{<<"value">> => true, <<"label">> => <<"是"/utf8>>},
+            #{<<"value">> => false, <<"label">> => <<"否"/utf8>>}
+        ],
+        title => #{
+            zh => <<"是否分片"/utf8>>
+        },
+        description => #{
+            zh => <<"是否分片存储"/utf8>>
+        }
+    },
     <<"ico">> => #{
         order => 102,
         type => string,
@@ -191,7 +207,7 @@ init(?TYPE, ChannelId, #{
     {FileName, MinAddr, MaxAddr} =
         case maps:find(<<"filepath">>, Args) of
             {ok, FilePath} ->
-                {FileName1, MinAddr1, MaxAddr1} = dgiot_product_csv:read_csv(ChannelId, FilePath, Is_refresh),
+                {FileName1, MinAddr1, MaxAddr1} = dgiot_product_csv:read_csv(ChannelId, FilePath, Is_refresh, maps:get(<<"is_shard">>, Args, true)),
                 %% modbus_tcp:set_addr(ChannelId, MinAddr1, MaxAddr1),
                 {FileName1, MinAddr1, MaxAddr1};
             _ ->
@@ -213,7 +229,7 @@ init(?TYPE, ChannelId, #{
             maxaddr => MaxAddr}},
 %%    dgiot_client:add_clock(ChannelId, Start_time, End_time),
     dgiot_client:add_clock(ChannelId, dgiot_datetime:now_secs() - 5000, dgiot_datetime:now_secs() + 300000),
-    {ok, #state{id = ChannelId, env = #{size => Size}}, dgiot_client:register(ChannelId, tcp_client_sup, NewArgs)}.
+    {ok, #state{id = ChannelId, env = #{size => Size, filename => FileName, freq => Freq}}, dgiot_client:register(ChannelId, tcp_client_sup, NewArgs)}.
 
 handle_init(State) ->
     {ok, State}.
@@ -223,10 +239,24 @@ handle_event(_EventId, Event, State) ->
     io:format("~s ~p Event = ~p.~n", [?FILE, ?LINE, Event]),
     {ok, State}.
 
-handle_message(start_client, #state{id = ChannelId, env = #{size := Size}} = State) ->
+handle_message(check_connection, #state{id = ChannelId, env = #{filename := FileName, freq := Freq}} = Dclient) ->
+    Now = dgiot_datetime:now_secs(),
+    case dgiot_data:get({check_connection, ChannelId, FileName}) of
+        OldTime when (Now - OldTime) > Freq ->
+            dgiot_client:stop(ChannelId, FileName),
+            dgiot_client:start(ChannelId, FileName);
+        _ ->
+            pass
+    end,
+    erlang:send_after(Freq * 1200, self(), check_connection),
+    {noreply, Dclient};
+
+handle_message(start_client, #state{id = ChannelId, env = #{size := _Size, filename := FileName}} = State) ->
     case dgiot_data:get({start_client, ChannelId}) of
         not_find ->
-            [dgiot_client:start(ChannelId, dgiot_utils:to_binary(I)) || I <- lists:seq(1, Size)],
+%%            [dgiot_client:start(ChannelId, dgiot_utils:to_binary(I)) || I <- lists:seq(1, Size)],
+            dgiot_client:start(ChannelId, FileName),
+            erlang:send_after(30 * 1000, self(), check_connection),
             dgiot_data:insert({start_client, ChannelId}, ChannelId);
         _ ->
             pass

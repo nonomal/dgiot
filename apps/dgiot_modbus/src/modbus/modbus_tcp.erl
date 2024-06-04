@@ -24,7 +24,7 @@
 -export([
     init/1,
     parse_frame/1,
-    parse_frame/3,
+    parse_frame/4,
     to_frame/1,
     build_req_message/1,
     get_addr/4,
@@ -277,7 +277,7 @@ parse_frame(<<_TransactionId:16, _ProtocolId:16, _Size1:16, _Slaveid:8, _FunCode
 %% 0000 0018 0280 0000 0004 2102 0402 0000 0005 0017001C001C0000001802800000000421020402
 %% 00000001000200030004000540C0000041000000412000004140000041600000418000004190000041A0000041B0000041C0000041D0000041E000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000063
 %% 3F800000400000004080000040C0000041000000412000004140000041600000418000004190000041A0000041B0000041C0000041D0000041E0000041F00000420000004208000000000000000000000000000000000000000000000000000000000000000000000000000000000000426000004268000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000630000000000000000000000000000006B
-parse_frame(StartAddr, FileName, Data) ->
+parse_frame(StartAddr, FileName, Data, MinAddr) ->
     AtomName = dgiot_utils:to_atom(FileName),
     Things = ets:match(AtomName, {'$1', ['_', '_', '_', '_', '$2', '_', '_', '_', '$3', '_', '_', '_', '_', '_', '_', '$4' | '_']}),
     AllData =
@@ -290,7 +290,14 @@ parse_frame(StartAddr, FileName, Data) ->
                     _ ->
                         {Address, 1}
                 end,
-            IntOffset = dgiot_utils:to_int(NewAddress) - (StartAddr + 1),
+            IntOffset =
+                case dgiot_utils:to_int(MinAddr) of
+                    0 ->
+                        dgiot_utils:to_int(NewAddress);
+                    _ ->
+                        dgiot_utils:to_int(NewAddress) - (StartAddr + 1)
+                end,
+
             Thing = #{
                 <<"identifier">> => NewAddress,
                 <<"dataSource">> => #{
@@ -341,37 +348,30 @@ parse_frame(StartAddr, FileName, Data) ->
     NewAllData =
         maps:fold(fun
                       (_, {ProductId1, Devaddr1, Ack}, Ncc) ->
-                          DeviceId = dgiot_parse_id:get_deviceid(ProductId1, Devaddr1),
-%%                          NewAck = change_data(ProductId1, Ack),
                           CacheAck = dgiot_task:merge_cache_data(ProductId1, Ack, -1),
-                          NewResult = dgiot_dlink_proctol:parse_payload(ProductId1, CacheAck),
-                          Props = dgiot_task:get_props(ProductId1),
-                          Calculated = get_calculated(ProductId1, Devaddr1, NewResult, Props),
-
                           dgiot_task:save_cache_data(ProductId1, CacheAck),
-                          BinData =
-                              maps:fold(fun(K, V, Acc) ->
-                                  BinK = dgiot_utils:to_binary(K),
-                                  Len = dgiot_utils:to_binary(size(BinK)),
-                                  BinV = dgiot_utils:to_binary(V),
-                                  <<Acc/binary, Len/binary, BinK/binary, BinV/binary, ",">>
-                                        end, <<>>, CacheAck),
-
-                          Shard_data = modbus_tcp:shard_data(BinData, Calculated),
-                          case dgiot_data:get({modbus_tcp, dgiot_datetime:now_secs()}) of
+                          Now = dgiot_datetime:now_secs(),
+                          case dgiot_data:get({modbus_tcp, Devaddr1, Now}) of
                               not_find ->
-                                  spawn(fun() ->
-                                      dgiot_device:save(ProductId1, Devaddr1),
-                                      Sql = dgiot_tdengine:format_sql(ProductId1, Devaddr1, [Shard_data]),
-                                      dgiot_tdengine_adapter:save_sql(ProductId1, Sql)
-                                        end),
-                                  ChannelId = dgiot_parse_id:get_channelid(<<"2">>, <<"DGIOTTOPO">>, <<"TOPO组态通道"/utf8>>),
-                                  dgiot_channelx:do_message(ChannelId, {topo_thing, ProductId1, DeviceId, Shard_data}),
-                                  dgiot_data:insert({modbus_tcp, dgiot_datetime:now_secs()}, true);
+                                  dgiot_data:insert({modbus_tcp, Devaddr1, Now}, true),
+                                  NewResult = dgiot_dlink_proctol:parse_payload(ProductId1, CacheAck),
+                                  Props = dgiot_task:get_props(ProductId1),
+                                  Calculated = get_calculated(ProductId1, Devaddr1, NewResult, Props),
+                                  BinData =
+                                      maps:fold(fun(K, V, Acc) ->
+                                          BinK = dgiot_utils:to_binary(K),
+                                          Len = dgiot_utils:to_binary(size(BinK)),
+                                          BinV = dgiot_utils:to_binary(V),
+                                          <<Acc/binary, Len/binary, BinK/binary, BinV/binary, ",">>
+                                                end, <<>>, CacheAck),
+                                  Shard_data = modbus_tcp:shard_data(BinData, Calculated),
+                                  dgiot_device:save(ProductId1, Devaddr1),
+                                  Sql = dgiot_tdengine:format_sql(ProductId1, Devaddr1, [Shard_data#{<<"createdat">> => Now * 1000}]),
+                                  dgiot_tdengine_adapter:save_sql(ProductId1, Sql),
+                                  Ncc#{Devaddr1 => Calculated};
                               _ ->
-                                  pass
-                          end,
-                          Ncc#{Devaddr1 => Ack};
+                                  Ncc
+                          end;
                       (_, _, Ncc) ->
                           Ncc
                   end, #{}, AllData),

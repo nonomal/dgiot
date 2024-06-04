@@ -19,7 +19,7 @@
 -include("dgiot_tdengine.hrl").
 -include_lib("dgiot/include/logger.hrl").
 
--export([add_field/5, get_field/1, check_fields/2, check_fields/3, get_time/2, check_value/3, get_field_type/1]).
+-export([add_field/5, get_field/1, check_fields/2, check_fields/3, get_time/2, check_value/3, get_field_type/1, check_validate/2]).
 
 add_field(#{<<"type">> := <<"enum">>}, Database, TableName, LowerIdentifier, FieldType) ->
     <<"ALTER TABLE ", Database/binary, TableName/binary, " ADD ", FieldType/binary, " ", LowerIdentifier/binary, " INT;">>;
@@ -104,13 +104,14 @@ check_value(Value, ProductId, Field) ->
             Specs = maps:get(<<"specs">>, DataType, #{}),
             Type1 = list_to_binary(string:to_upper(binary_to_list(Type))),
             NewValue = get_type_value(Type1, Value, Specs),
-            case check_validate(NewValue, Specs) of
-                true ->
-                    NewValue;
-                false ->
-                    BinNewValue = dgiot_utils:to_binary(NewValue),
-                    throw({error, <<Field/binary, "=", BinNewValue/binary, " is not validate">>})
-            end
+            NewValue
+%%            case check_validate(NewValue, Specs) of
+%%                true ->
+%%                    NewValue;
+%%                false ->
+%%                    BinNewValue = dgiot_utils:to_binary(NewValue),
+%%                    throw({error, <<Field/binary, "=", BinNewValue/binary, " is not validate">>})
+%%            end
     end.
 
 check_fields(Data, #{<<"properties">> := Props}) ->
@@ -150,12 +151,13 @@ check_field(Data, #{<<"identifier">> := Field, <<"dataType">> := #{<<"type">> :=
         Value ->
             Type1 = list_to_binary(string:to_upper(binary_to_list(Type))),
             NewValue = get_type_value(Type1, Value, Specs),
-            case check_validate(NewValue, Specs) of
-                true ->
-                    NewValue;
-                false ->
-                    throw({error, <<Field/binary, " is not validate">>})
-            end
+            NewValue
+%%            case check_validate(NewValue, Specs) of
+%%                true ->
+%%                    NewValue;
+%%                false ->
+%%                    throw({error, <<Field/binary, " is not validate">>})
+%%            end
     end;
 
 check_field(_, _) ->
