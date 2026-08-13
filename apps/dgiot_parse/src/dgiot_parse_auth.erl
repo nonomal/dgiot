@@ -748,9 +748,9 @@ find_role(UserId, DisUserId) ->
     end.
 
 find_parent(RoleIds, DisRoleId) ->
-    case dgiot_data:get(?ROLE_PARENT_ETS, DisRoleId) of
+case dgiot_data:get(?ROLE_PARENT_ETS, DisRoleId) of
         not_find ->
-            fasle;
+            false;
         ParentId ->
             case lists:member(ParentId, RoleIds) of
                 true ->
@@ -807,7 +807,11 @@ create_user_for_app(App) ->
                 <<"nick">> => AppUser,
                 <<"password">> => new_token(),
                 <<"phone">> => AppUser,
+<<<<<<< HEAD
                 <<"email">> => <<AppUser/binary, "@iotn2n.com">>
+=======
+                <<"email">> => <<AppUser/binary, "@dgiot.com">>
+>>>>>>> origin/dgaiot-plugins
             },
             case dgiot_parse:create_object(<<"_User">>, Data) of
                 {ok, #{<<"objectId">> := UserId}} ->
@@ -1226,6 +1230,3 @@ getuser(#{<<"objectId">> := RoleId, <<"name">> := Depname} = Role) ->
         {ok, SubChildren} ->
             #{<<"objectId">> => RoleId, <<"name">> => Depname, <<"label">> => Depname, <<"children">> => SubChildren, <<"userlist">> => NewUserList}
     end.
-
-
-

@@ -116,7 +116,7 @@
         order => 102,
         type => string,
         required => false,
-        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/parserIcon.jpg">>,
+        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/parse_channel.png">>,
         title => #{
             en => <<"channel ICO">>,
             zh => <<"通道ICO"/utf8>>
@@ -174,8 +174,13 @@ init(?TYPE, Channel, Cfg) ->
 
 %% 初始化池子
 handle_init(State) ->
+<<<<<<< HEAD
     emqx_hooks:add('logger.send', {dgiot_parse_log, send, []}),
     emqx_hooks:add('mqtt_publish.trace', {dgiot_tracer, check_trace, [?MODULE, ?LINE]}),
+=======
+    dgiot_hooks:add('logger.send', {dgiot_parse_log, send, []}),
+    dgiot_hooks:add('mqtt_publish.trace', {dgiot_tracer, check_trace, [?MODULE, ?LINE]}),
+>>>>>>> origin/dgaiot-plugins
     {ok, State}.
 
 handle_message(export, #state{cfg = Cfg} = State) ->

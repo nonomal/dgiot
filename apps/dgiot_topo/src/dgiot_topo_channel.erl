@@ -83,7 +83,7 @@
         order => 102,
         type => string,
         required => false,
-        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/TOPOIcon.png">>,
+        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/topo_channel.png">>,
         title => #{
             en => <<"channel ICO">>,
             zh => <<"通道ICO"/utf8>>
@@ -109,6 +109,7 @@ init(?TYPE, ChannelId, #{<<"product">> := Products, <<"BRIDGEURL">> := Bridgeurl
     },
     dgiot_parse_hook:subscribe(<<"View/*">>, put, ChannelId),
     dgiot_data:insert(topourl, <<Bridgeurl/binary, "/iotapi/topo">>),
+    dgiot_data:insert(topo_channel, ChannelId),
     dgiot_product_knova:get_Product_konva(),
     {ok, State}.
 
@@ -131,6 +132,11 @@ handle_message({topo_thing, ProductId, DeviceId, Data}, State) ->
     dgiot_topo:send_realtime_card(ProductId, DeviceId, Data),
 %%     发送组态数据
 %%    dgiot_topo:send_konva(ProductId, DeviceId, Data),
+    {ok, State};
+
+handle_message({dashboard_task, Args}, State) ->
+    supervisor:start_child(dashboard_task, [Args]),
+    dgiot_topo:send_amisdata(Args),
     {ok, State};
 
 handle_message(Message, State) ->

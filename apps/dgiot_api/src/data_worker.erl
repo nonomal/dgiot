@@ -97,7 +97,7 @@ handle_info(station, #task{sessiontoken = SessionToken, env = #{<<"type">> := <<
 handle_info(station, #task{sessiontoken = SessionToken, env = #{<<"type">> := <<"import">>, <<"file">> := #{<<"fullpath">> := Fullpath} = _File}} = State) ->
     io:format("~s ~p State = ~p.~n", [?FILE, ?LINE, State]),
     import_parse(Fullpath),
-    dgiot_device_cache:parse_cache_Device(<<>>),
+    dgiot_device:parse_cache_Device(0),
     restart_channel(SessionToken),
     import_td(SessionToken),
     import_files(),
@@ -204,9 +204,9 @@ restart_channel(SessionToken) ->
     case dgiot_parse:query_object(<<"Channel">>, #{<<"where">> => #{<<"isEnable">> => true}}) of
         {ok, #{<<"results">> := Results}} ->
             lists:foldl(fun(#{<<"objectId">> := ChannelId}, _Acc) ->
-                dgiot_bridge:control_channel(ChannelId, <<"disable">>, SessionToken),
+                dgiot_bridge:control_channel(#{<<"id">> => ChannelId, <<"action">> => <<"disable">>}, SessionToken),
                 timer:sleep(500),
-                dgiot_bridge:control_channel(ChannelId, <<"enable">>, SessionToken),
+                dgiot_bridge:control_channel(#{<<"id">> => ChannelId, <<"action">> => <<"enable">>}, SessionToken),
                 timer:sleep(500)
                         end, [], Results);
         _ ->

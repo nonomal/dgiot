@@ -71,6 +71,66 @@ handle(OperationID, Args, Context, Req) ->
             {Status, maps:merge(Headers, NewHeaders), Res, Req}
     end.
 
+%% 设备迁移列表
+do_request(post_dev_transfer, #{<<"objectId">> := DeviceId, <<"rolename">> := RoleName} = _Args, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
+    case dgiot_parsex:get_object(<<"Device">>, DeviceId) of
+        {ok, #{<<"name">> := DevName, <<"devaddr">> := Devaddr}} ->
+            #{<<"nick">> := Nick} = dgiot_auth:get_session(SessionToken),
+            OldRole = dgiot_device:get_appname(DeviceId),
+            Msg = <<Nick/binary, " 将设备从部门【"/utf8, OldRole/binary, "】转移到新部门【"/utf8, RoleName/binary, "】"/utf8>>,
+            dgiot_parsex:create_object(<<"Log">>, #{
+                <<"deviceid">> => DeviceId
+                , <<"msg">> => Msg
+                , <<"domain">> => [<<"DeviceTransferlist">>]
+                , <<"type">> => <<"DeviceTransferlist">>
+                , <<"mfa">> => RoleName
+                , <<"line">> => 1
+                , <<"topic">> => OldRole
+                , <<"peername">> => DevName
+                , <<"devaddr">> => Devaddr
+            }),
+            {ok, #{<<"data">> => <<"ok">>, <<"msg">> => Msg, <<"status">> => 0}};
+        _ ->
+            {ok, #{<<"msg">> => <<"not find device">>, <<"status">> => 0}}
+    end;
+
+%% 设备迁移拒绝
+do_request(post_dev_transfer, #{<<"logid">> := LogId, <<"status">> := false} = _Args, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
+    case dgiot_parsex:get_object(<<"Log">>, LogId) of
+        {ok, #{<<"deviceid">> := DeviceId, <<"mfa">> := RoleName, <<"topic">> := OldRole}} ->
+            #{<<"nick">> := Nick} = dgiot_auth:get_session(SessionToken),
+            Msg = <<Nick/binary, " 拒绝 将设备从部门【"/utf8, OldRole/binary, "】转移到新部门【"/utf8, RoleName/binary, "】"/utf8>>,
+            dgiot_parsex:update_object(<<"Log">>, LogId, #{
+                <<"deviceid">> => DeviceId
+                , <<"msg">> => Msg
+                , <<"line">> => 3
+                , <<"time">> => dgiot_datetime:nowstamp()
+            });
+        _ ->
+            {ok, #{<<"msg">> => <<"not find log">>, <<"status">> => 0}}
+    end;
+
+%% 设备迁移
+do_request(post_dev_transfer, #{<<"logid">> := LogId} = _Args, _Context, _Req) ->
+    case dgiot_parsex:get_object(<<"Log">>, LogId) of
+        {ok, #{<<"deviceid">> := DeviceId, <<"mfa">> := RoleName}} ->
+            ACL = #{<<"role:", RoleName/binary>> => #{<<"read">> => true, <<"write">> => true}},
+            case dgiot_parsex:update_object(<<"Device">>, DeviceId, #{<<"ACL">> => ACL}) of
+                {ok, Data} ->
+                    dgiot_parsex:update_object(<<"Log">>, LogId, #{
+                        <<"deviceid">> => DeviceId
+                        , <<"line">> => 2
+                        , <<"time">> => dgiot_datetime:nowstamp()
+                    }),
+                    dgiot_device:put(#{<<"objectId">> => DeviceId, <<"ACL">> => ACL}),
+                    {ok, #{<<"data">> => Data, <<"status">> => 0}};
+                {_, Data} ->
+                    {ok, #{<<"data">> => Data, <<"msg">> => <<"error">>, <<"status">> => 0}}
+            end;
+        _ ->
+            {ok, #{<<"msg">> => <<"not find log">>, <<"status">> => 0}}
+    end;
+
 
 do_request(get_sports, _Args, _Context, _Req) ->
     Items =
@@ -155,6 +215,11 @@ do_request(post_group, #{<<"name">> := _Name, <<"devType">> := _DevType} = Body,
 do_request(delete_group, #{<<"name">> := _Name, <<"devType">> := _DevType} = Body, #{<<"sessionToken">> := SessionToken} = _Context, _Req) ->
     ?LOG(info, "Body ~p ", [Body]),
     delete_group(Body, SessionToken);
+
+do_request(get_product_statistics, #{<<"type">> := Type} = _Args, #{<<"sessionToken">> := SessionToken}, _Body) ->
+%%    Data = get_statistics(SessionToken),
+    Data = dgiot_product:get_product_statistics(Type, SessionToken),
+    {ok, #{<<"status">> => 0, msg => <<"ok">>, <<"data">> => Data}};
 
 %%  服务器不支持的API接口
 do_request(_OperationId, _Args, _Context, _Req) ->

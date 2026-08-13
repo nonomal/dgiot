@@ -26,11 +26,26 @@
     , description/0
 ]).
 
+save_client(<<Token:34/binary, _Type/binary>> = ClientId) ->
+    case dgiot_data:get({dlink_client, Token}) of
+        not_find ->
+            dgiot_data:insert({dlink_client, Token}, [ClientId]);
+        ClientIds ->
+            New_ClientIds = dgiot_utils:unique_2(ClientIds ++ [ClientId]),
+            dgiot_data:insert({dlink_client, Token}, New_ClientIds)
+    end.
+
+sub_notification(ClientId, Roles) ->
+    maps:fold(fun(RoleId, _, _) ->
+        dgiot_mqtt:subscribe_route_key([<<"$dg/user/dashboard/notification/", RoleId/binary, "/#">>], <<"notification">>, ClientId)
+              end, {}, Roles).
+
 check(#{peerhost := PeerHost, username := <<"dgiot">>}, AuthResult, _) when PeerHost == {127, 0, 0, 1} ->
+    % io:format("~s ~p AuthResult: ~p~n", [?FILE, ?LINE, AuthResult]),
     {ok, AuthResult#{anonymous => false, auth_result => success}};
 
 check(#{username := <<"dgiot">>, password := Password}, AuthResult, _) ->
-%%    io:format("~s ~p Password: ~p~n", [?FILE, ?LINE, Password]),
+    % io:format("~s ~p Password: ~p~n", [?FILE, ?LINE, Password]),
     SuperPwd = dgiot_utils:to_binary(dgiot:get_env(dgiot_dlink, super_pwd, <<"">>)),
     case SuperPwd of
         Password ->
@@ -45,10 +60,16 @@ check(#{username := Username}, AuthResult, _)
     {ok, AuthResult#{anonymous => true, auth_result => success}};
 
 %% 当 clientid 和 password 为token 且相等的时候为用户登录
-check(#{clientid := <<Token:34/binary, _Type/binary>>, username := UserId, password := Token}, AuthResult, #{hash_type := _HashType}) ->
-%%    io:format("~s ~p UserId: ~p~n", [?FILE, ?LINE, UserId]),
+check(#{clientid := <<Token:34/binary, _Type/binary>> = ClientId, username := UserId, password := Token}, AuthResult, #{hash_type := _HashType}) ->
+    % io:format("~s ~p UserId: ~p ClientId: ~p _Type: ~p Token: ~p ~n", [?FILE, ?LINE, UserId, ClientId, _Type, Token]),
     case dgiot_auth:get_session(Token) of
-        #{<<"objectId">> := UserId} ->
+        #{<<"objectId">> := UserId} = User ->
+%%            登录时订阅告警推送
+            spawn(fun() ->
+                timer:sleep(1000 * 10),
+                sub_notification(ClientId, maps:get(<<"roles">>, User, #{}))
+                  end),
+            save_client(ClientId),
             {stop, AuthResult#{anonymous => false, auth_result => success}};
         _ ->
             {stop, AuthResult#{anonymous => false, auth_result => password_error}}
@@ -61,17 +82,17 @@ check(#{clientid := <<Token:34/binary, _Type/binary>>, username := UserId, passw
 %% 2、 尝试ClientID 为deviceID的1机1密认证
 %% 3、 尝试ClientID 为deviceAddr的1机1密认证
 check(#{clientid := <<ProductID:10/binary, "_", DeviceAddr/binary>>, username := ProductID, password := Password, peerhost := PeerHost}, AuthResult, #{hash_type := _HashType}) ->
-%%    io:format("~s ~p ProductID: ~p ClientId ~p Password ~p PeerHost ~p ~n", [?FILE, ?LINE, ProductID, DeviceAddr, Password, dgiot_utils:get_ip(PeerHost)]),
+    % io:format("~s ~p ProductID: ~p ClientId ~p Password ~p PeerHost ~p ~n", [?FILE, ?LINE, ProductID, DeviceAddr, Password, dgiot_utils:get_ip(PeerHost)]),
     DeviceId = dgiot_parse_id:get_deviceid(ProductID, DeviceAddr),
     do_check(AuthResult, Password, ProductID, DeviceAddr, DeviceId, dgiot_utils:get_ip(PeerHost));
 
 check(#{clientid := DeviceAddr, username := ProductID, password := Password, peerhost := PeerHost}, AuthResult, #{hash_type := _HashType}) ->
-%%    io:format("~s ~p ProductID: ~p ClientId ~p Password ~p PeerHost ~p ~n", [?FILE, ?LINE, ProductID, DeviceAddr, Password, dgiot_utils:get_ip(PeerHost)]),
+    % io:format("~s ~p ProductID: ~p ClientId ~p Password ~p PeerHost ~p ~n", [?FILE, ?LINE, ProductID, DeviceAddr, Password, dgiot_utils:get_ip(PeerHost)]),
     DeviceId = dgiot_parse_id:get_deviceid(ProductID, DeviceAddr),
     do_check(AuthResult, Password, ProductID, DeviceAddr, DeviceId, dgiot_utils:get_ip(PeerHost));
 
 check(#{username := _Username}, AuthResult, _) ->
-%%    io:format("~s ~p Username: ~p~n", [?FILE, ?LINE, _Username]),
+    % io:format("~s ~p Username: ~p~n", [?FILE, ?LINE, _Username]),
     {stop, AuthResult#{anonymous => false, auth_result => password_error}}.
 
 description() -> "Authentication with Mnesia".

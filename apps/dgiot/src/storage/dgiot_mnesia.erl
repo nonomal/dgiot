@@ -49,7 +49,8 @@
     match_object/2,
     search/0,
     search/2,
-    search/3
+    search/3,
+    count/0
 ]).
 
 -export([start_link/2]).
@@ -93,6 +94,7 @@ init_ets() ->
 %%--------------------------------------------------------------------
 
 mnesia(boot) ->
+<<<<<<< HEAD
     ok = ekka_mnesia:create_table(?MNESIA_TAB, [
         {type, set},
         {ram_copies, [node()]},
@@ -111,6 +113,51 @@ mnesia(boot) ->
 mnesia(copy) ->
     ok = ekka_mnesia:copy_table(?MNESIA_TAB, ram_copies),
     ok = ekka_mnesia:copy_table(?MNESIA_ID, ram_copies).
+=======
+    ensure_mnesia_running(),
+    create_mnesia_table(?MNESIA_TAB, mnesia, record_info(fields, mnesia)),
+    create_mnesia_table(?MNESIA_ID, mnesia_id, record_info(fields, mnesia_id));
+
+mnesia(copy) ->
+    copy_mnesia_table(?MNESIA_TAB),
+    copy_mnesia_table(?MNESIA_ID).
+
+ensure_mnesia_running() ->
+    case mnesia:system_info(is_running) of
+        yes -> ok;
+        _ ->
+            try mnesia:start() catch _:_ -> ok end,
+            ok
+    end,
+    case mnesia:system_info(is_running) of
+        yes ->
+            %% Ensure schema exists for this node
+            case mnesia:create_schema([node()]) of
+                ok -> ok;
+                {error, {_, already_exists}} -> ok;
+                _ -> ok
+            end;
+        _ -> ok
+    end.
+
+create_mnesia_table(Name, Record, Attrs) ->
+    case mnesia:create_table(Name, [
+        {type, set},
+        {ram_copies, [node()]},
+        {record_name, Record},
+        {attributes, Attrs}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, _}} -> ok;
+        {aborted, {node_not_running, _}} -> ok
+    end.
+
+copy_mnesia_table(Name) ->
+    try mnesia:add_table_copy(Name, node(), ram_copies) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, _}} -> ok
+    catch _:_ -> ok
+    end.
+>>>>>>> origin/dgaiot-plugins
 
 %%--------------------------------------------------------------------
 %% Start a Mnesia
@@ -253,6 +300,16 @@ select_object(TB, Filter, Order) ->
         end,
     Result = mnesia:transaction(F),
     result(Result).
+
+count() ->
+    Fun = fun(X) ->
+        {_, K, V} = X,
+        #{K => V}
+            end,
+   case dgiot_mnesia:search(Fun, #{<<"skip">> => 0, <<"limit">> => 1}) of
+       #{<<"count">> := Count} -> Count;
+       _ -> 0
+   end.
 
 search() ->
     Fun = fun(X) ->

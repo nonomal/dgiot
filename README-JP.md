@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #  DGIOT
 
 [![GitHub Release](https://img.shields.io/github/release/dgiot/dgiot?color=brightgreen)](https://github.com/dgiot/dgiot/releases)
@@ -97,7 +98,7 @@ You are welcome to submit any bugs, issues and feature requests to [dgiot/dgiot]
 | Blog           | [https://www.dgiotcloud.cn/?cat=19](https://www.dgiotcloud.cn/?cat=19)                               |
 | IoT access platform | [https://prod.dgiotcloud.cn](https://prod.dgiotcloud.cn)                             |
 | The public         | ![qrcode.png](http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/wechat/qrcode.png) |
-|We chat group|![wx.png](https://dgiot-web-1306147891.cos.ap-nanjing.myqcloud.com/wechat.png)|
+| We chat group      | <img src="https://dgiot-web-1306147891.cos.ap-nanjing.myqcloud.com/wechat.png" width = "50%" />|
 | QQ group             | 346566935   |
 
 ### お問い合わせ
@@ -120,3 +121,17 @@ You are welcome to submit any bugs, issues and feature requests to [dgiot/dgiot]
 
 ## オープンソースライセンス
 Apache License 2.0, 详见 [LICENSE](./LICENSE)。
+=======
+# dgaiot
+[English/中文](README.md) | [Russian](README-RU.md)
+
+## 概要
+
+dgaiot は Erlang/OTP 高性能 IoT 集約エンジンです。
+
+- シャドウデバイス (gen_statem)
+- DLAS オントロジー (Data·Logic·Action·Security)
+- FDE パイプライン (Model→Ontology→Device→TimeSeries→Rules→Dashboard)
+
+詳細: [docs/DGAIOT_ONTOLOGY.md](docs/DGAIOT_ONTOLOGY.md)
+>>>>>>> origin/dgaiot-plugins

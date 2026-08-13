@@ -144,7 +144,7 @@
         order => 102,
         type => string,
         required => false,
-        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/meter.jpg">>,
+        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/meter_channel.png">>,
         title => #{
             en => <<"channel ICO">>,
             zh => <<"通道ICO"/utf8>>
@@ -167,8 +167,8 @@ init(?TYPE, ChannelId, #{
     <<"search">> := Search} = Args) ->
     lists:map(fun(X) ->
         case X of
-            {ProductId, #{<<"ACL">> := Acl, <<"nodeType">> := 1, <<"thing">> := Thing}} ->
-                Props = maps:get(<<"properties">>, Thing, []),
+            {ProductId, #{<<"ACL">> := Acl, <<"nodeType">> := 1}} ->
+                Props = dgiot_product:get_props(ProductId, <<"*">>),
                 dgiot_data:insert({dtu, ChannelId}, {ProductId, Acl, Props}),
                 lists:map(fun(Prop) ->
                     case Prop of
@@ -178,10 +178,11 @@ init(?TYPE, ChannelId, #{
                             pass
                     end
                           end, Props);
-            {ProductId, #{<<"ACL">> := Acl, <<"nodeType">> := 3, <<"thing">> := Thing}} ->
-                dgiot_data:insert({dtu, ChannelId}, {ProductId, Acl, maps:get(<<"properties">>, Thing, [])});
-            {ProductId, #{<<"ACL">> := Acl, <<"thing">> := Thing}} ->
-                Props = maps:get(<<"properties">>, Thing, []),
+            {ProductId, #{<<"ACL">> := Acl, <<"nodeType">> := 3}} ->
+                Props = dgiot_product:get_props(ProductId, <<"*">>),
+                dgiot_data:insert({dtu, ChannelId}, {ProductId, Acl, Props});
+            {ProductId, #{<<"ACL">> := Acl}} ->
+                Props = dgiot_product:get_props(ProductId, <<"*">>),
                 dgiot_data:insert({meter, ChannelId}, {ProductId, Acl, Props}),
                 lists:map(fun(Prop) ->
                     case Prop of

@@ -44,7 +44,7 @@
         order => 102,
         type => string,
         required => false,
-        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/log.png">>,
+        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/log_channel.png">>,
         title => #{
             en => <<"channel ICO">>,
             zh => <<"通道ICO"/utf8>>
@@ -101,9 +101,21 @@ handle_message(_Message, State) ->
     {ok, State}.
 
 stop(_ChannelType, _ChannelId, _State) ->
+<<<<<<< HEAD
+    try
+        dgiot_mqtt:unsubscribe(<<"dashboard_task/#">>),
+        dgiot_mqtt:unsubscribe(<<"dgiot_topics/#">>),
+        ok
+    catch
+        Error:Reason:Stack ->
+            ?LOG(error, "stop unsubscribe failed: ~p:~p, Stack: ~p", [Error, Reason, Stack]),
+            ok
+    end.
+=======
     dgiot_mqtt:unsubscribe(<<"dashboard_task/#">>),
     dgiot_mqtt:unsubscribe(<<"dgiot_topics/#">>),
     ok.
+>>>>>>> origin/dgaiot-plugins
 
 subscribe_topic(SessionToken, #{<<"topic">> := Topic, <<"topickey">> := TopicKey}) ->
     case is_list(Topic) of

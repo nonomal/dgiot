@@ -85,7 +85,7 @@
         order => 102,
         type => string,
         required => false,
-        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/dgiot_dlink_channel.png">>,
+        default => <<"/dgiot_file/shuwa_tech/zh/product/dgiot/channel/dlink_channel.png">>,
         title => #{
             en => <<"channel ICO">>,
             zh => <<"通道ICO"/utf8>>
@@ -107,14 +107,14 @@ start(ChannelId, ChannelArgs) ->
 init(?TYPE, ChannelId, #{<<"network">> := NetWork, <<"port">> := Port, <<"url">> := Url, <<"Size">> := PoolSize} = _ChannelArgs) ->
     State = #state{id = ChannelId},
     Mode = case Url of
-        <<"product">> ->
-            <<"product">>;
-        _ ->
+               <<"product">> ->
+                   <<"product">>;
+               _ ->
 %%            dgiot_grpc_test:start(),
-            R = dgiot_grpc_client:create_channel_pool(ChannelId, Url, PoolSize),
-            io:format("~s ~p R ~p ~n",[?FILE, ?LINE, R]),
-            <<"grpc">>
-    end,
+                   dgiot_grpc_client:create_channel_pool(ChannelId, Url, PoolSize),
+%%            io:format("~s ~p R ~p ~n",[?FILE, ?LINE, R]),
+                   <<"grpc">>
+           end,
     {ok, State, get_child_spec(NetWork, Port, ChannelId, Mode)}.
 
 handle_init(State) ->
@@ -122,24 +122,24 @@ handle_init(State) ->
 
 %% 通道消息处理,注意：进程池调用
 handle_event('client.connected', {rule, #{clientid := _ClientId}, _Msg} = _Event, State) ->
-    io:format("~s ~p _EventId ~p , _ClientId ~p ~n", [?FILE, ?LINE, 'client.connected', _ClientId]),
+    % io:format("~s ~p _EventId ~p , _ClientId ~p ~n", [?FILE, ?LINE, 'client.connected', _ClientId]),
     {ok, State};
 
 handle_event(_EventId, _Event, State) ->
-    io:format("~s ~p _EventId ~p , _Event ~p ~n", [?FILE, ?LINE, _EventId, _Event]),
+    % io:format("~s ~p _EventId ~p , _Event ~p ~n", [?FILE, ?LINE, _EventId, _Event]),
     {ok, State}.
 
 %% gun监测 开始
-handle_message({gun_up, _Pid, Proctol, Status, Env }, #state{id = _ChannelId} = State) ->
-    io:format("~s ~p gun_up = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
+handle_message({gun_up, _Pid, _Proctol, _Status, _Env}, #state{id = _ChannelId} = State) ->
+    % io:format("~s ~p gun_up = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
     {ok, State};
 
-handle_message({gun_error, _Pid, Proctol, Status, Env }, #state{id = _ChannelId} = State) ->
-    io:format("~s ~p gun_error = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
+handle_message({gun_error, _Pid, _Proctol, _Status, _Env}, #state{id = _ChannelId} = State) ->
+    % io:format("~s ~p gun_error = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
     {ok, State};
 
-handle_message({gun_down, _Pid, Proctol, Status, Env }, #state{id = _ChannelId} = State) ->
-    io:format("~s ~p gun_down = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
+handle_message({gun_down, _Pid, _Proctol, _Status, _Env}, #state{id = _ChannelId} = State) ->
+    % io:format("~s ~p gun_down = Proctol ~p.  Status ~p , Env ~p ~n", [?FILE, ?LINE, Proctol, Status, Env]),
     {ok, State};
 %% gun监测结束
 

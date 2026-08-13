@@ -1,15 +1,12 @@
+<<<<<<< HEAD
 # DGIOT轻量级工业物联网开源平台
-
-![开源大赛.jpg](https://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/kaiyuandasai.png)
 
 [![GitHub Release](https://img.shields.io/github/release/dgiot/dgiot?color=brightgreen)](https://github.com/dgiot/dgiot/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dgiot/dgiot)](https://hub.docker.com/r/dgiot/dgiot)
 [![Community](https://img.shields.io/badge/Community-DGIOT-yellow)](https://www.dgiotcloud.cn/)
-[![QQ群346566935](https://img.shields.io/badge/QQ群-346566935-brightgreen)](https://jq.qq.com/?_wv=1027&k=LipWZvDe)
-
 
 [English](./README.md) | [中文](./README-CN.md) | [日本語](./README-JP.md) | [русский](./README-RU.md)|
-[github](https://github.com/dgiot)|[gitee](https://gitee.com/dgiiot)|[官网](https://www.dgiotcloud.cn/)|[博客](https://www.dgiotcloud.cn/?cat=19)|[体验](https://prod.dgiotcloud.cn)|[微信群](#jump)
+[github](https://github.com/dgiot)|[gitee](https://gitee.com/dgiiot)|[官网](https://www.dgiotcloud.cn/)|[博客](https://www.dgiotcloud.cn/?cat=19)|[体验](https://prod.dgiotcloud.cn)|[Discord社区](#社区)
 
 ## DGIOT简介
 DGIOT是国内首款轻量级开源工业物联网平台，我们致力于提供五类物联网解决方案：
@@ -20,9 +17,9 @@ DGIOT是国内首款轻量级开源工业物联网平台，我们致力于提供
 + **垂直领域物联网平台**：快速部署私有化平台，千万级承载，运营级底座，全开放扩展
 
 ## 快速体验与微信群
-| 微信技术支持群 | [QQ技术支持群](https://jq.qq.com/?_wv=1027&k=LipWZvDe)   | 小程序体验 |电脑端https://prod.dgiotcloud.cn|
+| 微信技术支持群 | [QQ技术支持群](https://jq.qq.com/?_wv=1027&k=LipWZvDe)   | 小程序体验 | 官网案例 |
 |:---:|:---:|:---:|:---:|
-|<img src="https://dgiot-web-1306147891.cos.ap-nanjing.myqcloud.com/wechat.png" width = "100%" />|<img src="http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/QQ%E6%8A%80%E6%9C%AF%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width = "100%" /> |<img src="http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/dgiot_release/dgiot_wechat.jpg" width = "60%" />|运维账号：dgiot_admin  </br>  密码: dgiot_admin  </br> </br>开发账号: dgiot_dev  </br>  密码: dgiot_dev |
+|<img src="https://dgiot-web-1306147891.cos.ap-nanjing.myqcloud.com/wechat.png" width = "100%" />|<img src="http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/QQ%E6%8A%80%E6%9C%AF%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width = "100%" /> |<img src="http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/dgiot_release/dgiot_wechat.jpg" width = "100%" /> | [官网体验地址](https://prod.dgiotcloud.cn)  </br> </br> [智慧园区](https://www.dgiotcloud.cn/smartpark/) </br></br> [平安校园](https://www.dgiotcloud.cn/smartcampus/)|
 
 ## 核心特色
 + **完全开源**：前后端完全开源，无收费商业版
@@ -59,10 +56,10 @@ wget -qO dgiot_install.sh https://gitee.com/dgiiot/dgiot/raw/master/dgiot_instal
 |Docker部署|https://hub.docker.com/r/dgiot/dgiot|
 
 ## 服务支持
- 数字化需求日益增长与企业缺钱缺人缺经验的矛盾日益突出，为此dgiot坚持代码开源，产品免费，持续改善物联网服务性价比，同时倡议：
- + 欢迎dgiot用户多尝试自助服务，多参与社区建设，多提issue，多在qq或者微信上反馈真实的物联网需求，助力提升社区服务品质
- + 欢迎dgiot先来者可以为后来者提供系统部署，插件开发和设备接入等指导服务，一起提供更多优质VIP服务，构建可持续的社区生态
- + dgiot团队在保守用户商业机密的前提下，将持续提炼行业业务需求和物联网平台运维经验，把行业真需求和一线经验沉淀到社区生态中
+数字化需求日益增长与企业缺钱缺人缺经验的矛盾日益突出，为此dgiot坚持代码开源，产品免费，持续改善物联网服务性价比，同时倡议：
++ 欢迎dgiot用户多尝试自助服务，多参与社区建设，多提issue，多在qq或者微信上反馈真实的物联网需求，助力提升社区服务品质
++ 欢迎dgiot先来者可以为后来者提供系统部署，插件开发和设备接入等指导服务，一起提供更多优质VIP服务，构建可持续的社区生态
++ dgiot团队在保守用户商业机密的前提下，将持续提炼行业业务需求和物联网平台运维经验，把行业真需求和一线经验沉淀到社区生态中
 
 |   |   | | |
 | -----| ------ |------- |------- |
@@ -80,11 +77,11 @@ wget -qO dgiot_install.sh https://gitee.com/dgiiot/dgiot/raw/master/dgiot_instal
 
 ## 工具矩阵
 
-   ![dgiot_family.png](http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/dgiot_family.png)
+![dgiot_family.png](http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/dgiot_family.png)
 
 ## 构建
- 构建 *dgiot* 需要 Erlang/OTP R24+, [linux](https://github.com/erlang/otp/releases/download/OTP-24.3.4.2/otp_src_24.3.4.2.tar.gz) Windows下用 [开发环境包](https://dgiotdev-1308220533.cos.ap-nanjing.myqcloud.com/msys64.zip)开发。下载后解压到D盘根目录，严格按照下图操作：
- ![dgiotdevtools.png](http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/dgiotdevtools.png)
+构建 *dgiot* 需要 Erlang/OTP R24+, [linux](https://github.com/erlang/otp/releases/download/OTP-24.3.4.2/otp_src_24.3.4.2.tar.gz) Windows下用 [开发环境包](https://dgiotdev-1308220533.cos.ap-nanjing.myqcloud.com/msys64.zip)开发。下载后解压到D盘根目录，严格按照下图操作：
+![dgiotdevtools.png](http://dgiot-1253666439.cos.ap-shanghai-fsi.myqcloud.com/shuwa_tech/zh/dgiotdevtools.png)
 +  国外下载源码
 ```bash
  git clone -b master https://github.com/dgiot/iotStudio.git
@@ -101,7 +98,7 @@ wget -qO dgiot_install.sh https://gitee.com/dgiiot/dgiot/raw/master/dgiot_instal
   git clone -b master https://gitee.com/dgiot/iotWechat.git
   git clone https://gitee.com/dgiiot/dgiot.git
 ```
- +  一键式启动命令Linux/Unix/Mac/windows
++  一键式启动命令Linux/Unix/Mac/windows
  ```bash
  make run
  ```
@@ -189,7 +186,6 @@ wget -qO dgiot_install.sh https://gitee.com/dgiiot/dgiot/raw/master/dgiot_instal
      </tr>
 </table>
 
-
 ## 智慧校园传感接入教程
 <table style={{border : 'none'}}>
     <tr style={{border : 'none'}}>
@@ -226,3 +222,100 @@ wget -qO dgiot_install.sh https://gitee.com/dgiiot/dgiot/raw/master/dgiot_instal
 
 ## 开源许可
 Apache License 2.0, 详见 [LICENSE](./LICENSE)。
+=======
+<p align="center">
+  <img src="https://img.shields.io/badge/Erlang-24.3-%23A90533">
+  <img src="https://img.shields.io/badge/OTP-24.3-green">
+  <img src="https://img.shields.io/badge/EMQX-4.9-orange">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-blue">
+</p>
+
+<h1 align="center">dgaiot</h1>
+<h3 align="center">Industrial IoT Aggregation Engine</h3>
+<p align="center">Erlang/OTP · Million-Device · Shadow · Ontology · gen_statem</p>
+
+---
+
+## DLAS Architecture
+
+```
+  ┌──────────────────────────────────────────────────────────────────┐
+  │                    EDGE: iotStudio (Python+Vue)                   │
+  │  DeviceAccess(9) → UnifiedPipeline → StreamEngine(15) → Alert(6) │
+  └──────────────────────────┬───────────────────────────────────────┘
+                             │ MQTT / HTTP
+  ┌──────────────────────────▼───────────────────────────────────────┐
+  │  SECURITY    auth · role · ACL/CLP · Hooks · JWT                 │
+  ├──────────────────────────────────────────────────────────────────┤
+  │  ACTION      Shadow(gen_statem) · Bridge · MQTT · Rule Engine   │
+  │              init → auth → online → {normal, alarm, offline}    │
+  ├──────────────────────────────────────────────────────────────────┤
+  │  LOGIC       Ontology Engine · Model Registry · 3 ETS Tables     │
+  │              load_model → compile → spawn → evaluate → reason    │
+  ├──────────────────────────────────────────────────────────────────┤
+  │  DATA        Parse(23 Classes) · PG(:7432)                       │
+  │              TDengine(_{ProductId}, devaddr NCHAR(50))           │
+  │              EMQX(:1883) · Mnesia/ETS                             │
+  └──────────────────────────────────────────────────────────────────┘
+```
+
+[Full HTML Diagram](docs/architecture-diagram.html)
+
+## FDE Pipeline
+
+```
+Model → Ontology → Device Access → TimeSeries → Rules → Dashboard
+  1        2           3              4           5          6
+```
+
+## Data Flow
+
+```
+Modbus 40300 → MQTT(dgiot/{site}/{gw}/{dev}/{pt}/data) → Shadow PID
+  → evaluate(Rules) → state transition → Parse + TDengine INSERT
+```
+
+## Ontology: DLAS
+
+| Layer | Function | Key Technology |
+|:------|:---------|:---------------|
+| **Data** | 23 Parse classes, TDengine, Mnesia/ETS | JSONB, SuperTable/SubTable, _{ProductId} |
+| **Logic** | load_model, spawn_instance, registry, rules, reasoner | 3 ETS tables, gen_statem compile |
+| **Action** | Shadow 1:1 device process, Bridge, MQTT | gen_statem OTP, ont_push_point |
+| **Security** | auth, role tree, ACL(object), CLP(class), Hooks | JWT, Parse ACL |
+
+[Full Ontology Doc](docs/DGAIOT_ONTOLOGY.md) · [Storage Architecture](docs/ontology-storage.md) · [Station Simulation](docs/research/station-simulation.md)
+
+## Modules
+
+| App | Layer | Role |
+|:----|:------|:-----|
+| `dgiot` | Data | Core — EMQX, rule engine, alarms |
+| `dgiot_ontology` | Logic | Model registry, reasoner, instance spawner |
+| `dgiot_parse` | Data | Parse Server REST client |
+| `dgiot_task` | Action | Shadow gen_statem worker |
+| `dgiot_device` | Logic | Device management + thing model |
+| `dgiot_bridge` | Action | Protocol bridge framework |
+| `dgiot_dlink` | Action | Data link layer |
+| `dgiot_api` | Security | REST API + auth gateway |
+| `dgiot_http` | — | HTTP service layer |
+| `dgiot_tdengine` | Data | TDengine timeseries connector |
+
+## Quick Start
+
+```bash
+git clone git@gitee.com:dgaiot/dgaiot.git
+cd dgaiot
+export PATH=/usr/local/erlang_24.3/bin:$PATH
+make
+```
+
+## Related
+
+- [iotStudio](https://gitee.com/dgiiot/iotStudio) — Edge Agent & Application (Python + Vue)
+- [dgiot](https://gitee.com/dgiiot/dgiot) — Full Erlang IoT Platform
+
+## License
+
+Apache 2.0
+>>>>>>> origin/dgaiot-plugins

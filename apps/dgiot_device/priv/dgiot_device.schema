@@ -18,3 +18,23 @@
   {datatype, string}
 ]}.
 
+<<<<<<< HEAD
+{mapping, "device.sync_batch_size", "dgiot_device.sync_batch_size", [
+  {default, 50},
+  {datatype, integer}
+]}.
+
+{mapping, "device.batch_max_retries", "dgiot_device.batch_max_retries", [
+  {default, 3},
+  {datatype, integer}
+]}.
+
+{mapping, "device.progress_report_interval", "dgiot_device.progress_report_interval", [
+  {default, 3},
+  {datatype, integer}
+]}.
+
+
+
+=======
+>>>>>>> origin/dgaiot-plugins

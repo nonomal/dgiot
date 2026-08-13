@@ -98,7 +98,7 @@ handle_info(next_time, #dclient{channel = Channel, client = Client, userdata = U
             NewRound = Round + 1,
             DiQue = dgiot_task:get_instruct(ProductId, NewRound),
             PnQueLen = dgiot_task:get_pnque_len(Client),
-%%            io:format("~s ~p DiQue = ~p.~n", [?FILE, ?LINE, DiQue]),
+            % io:format("~s ~p DiQue = ~p.~n", [?FILE, ?LINE, DiQue]),
             erlang:send_after(100, self(), read), % 每轮任务开始时，做一下随机开始
             {noreply, Dclient#dclient{userdata = UserData#device_task{product = ProductId, devaddr = DevAddr, pnque_len = PnQueLen, dique = DiQue},
                 clock = Clock#dclock{nexttime = NewNextTime, count = Count - 1, round = NewRound}}}
@@ -109,11 +109,11 @@ handle_info(read, State) ->
     {noreply, send_msg(State)};
 
 %% ACK消息触发进行新的指令发送
-handle_info({dclient_ack, Topic, Payload}, #dclient{channel = ChannelId, userdata = Usedata} = State) ->
+handle_info({dclient_ack, Topic, Payload}, #dclient{channel = _ChannelId, userdata = Usedata} = State) ->
     dgiot_metrics:inc(dgiot_task, <<"task_recv">>, 1),
     case binary:split(Topic, <<$/>>, [global, trim]) of
         [<<"$dg">>, <<"thing">>, ProductId, DevAddr, <<"properties">>, <<"report">>] ->
-            dgiot_bridge:send_log(dgiot_utils:to_binary(ChannelId), ProductId, DevAddr, "~s ~p recv => ~p ~ts ", [?FILE, ?LINE, Topic, unicode:characters_to_list(dgiot_json:encode(Payload))]),
+%%            dgiot_bridge:send_log(dgiot_utils:to_binary(ChannelId), ProductId, DevAddr, "~s ~p recv => ~p ~ts ", [?FILE, ?LINE, Topic, unicode:characters_to_list(dgiot_json:encode(Payload))]),
             dgiot_task:save_td(ProductId, DevAddr, Payload, #{}),
             {noreply, send_msg(State#dclient{userdata = Usedata#device_task{product = ProductId, devaddr = DevAddr}})};
         _ ->
@@ -147,7 +147,7 @@ send_msg(#dclient{channel = ChannelId, clock = #dclock{freq = Freq}, userdata = 
                     Payload = dgiot_json:encode(DataSource#{<<"identifier">> => Identifier1, <<"_dgiotTaskFreq">> => Freq}),
 %%                  io:format("~s ~p DataSource = ~p.~n", [?FILE, ?LINE, DataSource]),
                     dgiot_mqtt:publish(dgiot_utils:to_binary(ChannelId), Topic, Payload),
-                    dgiot_bridge:send_log(dgiot_utils:to_binary(ChannelId), Product, DevAddr, "~s ~p to dev => ~ts: ~ts", [?FILE, ?LINE, unicode:characters_to_list(Topic), unicode:characters_to_list(Payload)]),
+%%                    dgiot_bridge:send_log(dgiot_utils:to_binary(ChannelId), Product, DevAddr, "~s ~p to dev => ~ts: ~ts", [?FILE, ?LINE, unicode:characters_to_list(Topic), unicode:characters_to_list(Payload)]),
                     {Count + 1, Acc ++ [DataSource], Acc1 ++ [Identifier1]};
                 _ ->
                     {Count, Acc, Acc1}

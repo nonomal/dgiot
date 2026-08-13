@@ -24,10 +24,9 @@
     stop/1, get/1, set/3, delete/1]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2,
-    handle_info/2, terminate/2, code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(cachestate, {threshold, maxsize, cacheets, checkpid}).
+-record(cachestate, {threshold, maxsize, cacheets, checkpid, skip, dskip}).
 
 
 %%%===================================================================
@@ -77,16 +76,21 @@ stop(NameOrPid) ->
 %%%===================================================================
 
 init(Opts) ->
-    MaxSize = proplists:get_value(ets_maxsize, Opts, 8 * 1024 * 1024),
+    MaxSize = proplists:get_value(ets_maxsize, Opts, 1024 * 1024 * 1024),
     Threshold = proplists:get_value(ets_threshold, Opts, 0.85),
     CheckPid = proplists:get_value(checkpid, Opts),
     ValueEts = ets:new(?MODULE, [public, named_table, {write_concurrency, true}, {read_concurrency, true}]),
     Interval = dgiot:get_env(load_cache_classes_interval, 10),
+    erlang:send_after(1000 * Interval, self(), load_cache_Product),
+    erlang:send_after(1000 * Interval, self(), load_cache_Device),
     erlang:send_after(1000 * Interval, self(), load_cache_classes),
     {ok, #cachestate{maxsize = MaxSize,
         threshold = Threshold,
         cacheets = ValueEts,
-        checkpid = CheckPid}}.
+        checkpid = CheckPid,
+        skip = 0,
+        dskip = 0
+    }}.
 
 handle_call({get, Key}, _From, #cachestate{cacheets = ValueEts} = State) ->
     Reply = get(ValueEts, Key),
@@ -127,8 +131,36 @@ handle_info({'load_cache_classes_fin'}, State) ->
     io:format("~s ~p ~p ~n", [?FILE, ?LINE, load_cache_classes_fin]),
     {noreply, State};
 
+handle_info(load_cache_Product, #cachestate{skip = Skip} = State) ->
+    case dgiot_hook:run_hook('parse_cache_Product', {Skip}) of
+        {ok, [{next, Next_Skip}]} ->
+            Interval = dgiot:get_env(load_cache_classes_interval, 10),
+            erlang:send_after(1000 * Interval, self(), load_cache_Product),
+            {noreply, State#cachestate{skip = Next_Skip}};
+        _ ->
+            % 检查 dgiot_bridge_server 进程是否存在
+            case whereis(dgiot_bridge_server) of
+                undefined ->
+                    ?LOG(warning, "dgiot_bridge_server not started yet, retrying in 5 seconds"),
+                    erlang:send_after(5000, self(), load_cache_Product);
+                _ ->
+                    dgiot_bridge_server ! {start_custom_channel}
+            end,
+            {noreply, State}
+    end;
+
+handle_info(load_cache_Device, #cachestate{dskip = DSkip} = State) ->
+    case dgiot_hook:run_hook('parse_cache_Device', {DSkip}) of
+        {ok, [{next, Next_DSkip}]} ->
+            Interval = dgiot:get_env(load_cache_classes_interval, 10),
+            erlang:send_after(1000 * Interval, self(), load_cache_Device),
+            {noreply, State#cachestate{dskip = Next_DSkip}};
+        _ ->
+            {noreply, State}
+    end;
+
 handle_info(load_cache_classes, State) ->
-    case dgiot_hook:run_hook({'dgiot', 'load_cache_classes'}, [self()]) of
+    case dgiot_hook:run_hook({'dgiot','load_cache_classes'}, {self()}) of
         {error, not_find} ->
             Interval = dgiot:get_env(load_cache_classes_interval, 10),
             erlang:send_after(1000 * Interval, self(), load_cache_classes);
